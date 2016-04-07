@@ -104,7 +104,7 @@
         <swagger.version>1.5.8</swagger.version>
         <sigar.version>1.6.4</sigar.version>
         <restassured.version>2.9.0</restassured.version>
-        <elasticsearch.version>2.3.1</elasticsearch.version>
+        <elasticsearch.version>5.0.0-alpha1</elasticsearch.version>
         <retrofit.version>2.0.1</retrofit.version>
         <forbiddenapis.version>2.0</forbiddenapis.version>
     </properties>
@@ -133,7 +133,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-
         <repository>
             <id>atlassian-m2-repository</id>
             <name>Atlassian Public Repository</name>
@@ -144,6 +143,11 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+        </repository>
+        <repository>
+            <id>lucene-snapshot</id>
+            <name>Lucene Snapshot repo</name>
+            <url>http://download.elastic.co/lucenesnapshots/f0aa4fc</url>
         </repository>
     </repositories>
 
@@ -724,7 +728,7 @@
             <dependency>
                 <groupId>com.github.joschi.nosqlunit</groupId>
                 <artifactId>nosqlunit-elasticsearch2</artifactId>
-                <version>0.9.0-1</version>
+                <version>0.9.0-es5alpha-1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

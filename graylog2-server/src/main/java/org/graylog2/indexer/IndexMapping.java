@@ -57,7 +57,7 @@ public class IndexMapping {
     private List<Map<String, Map<String, Object>>> partDefaultAllInDynamicTemplate() {
         final Map<String, Object> defaultInternal = ImmutableMap.of(
                 "match", "gl2_*",
-                "mapping", notAnalyzedString());
+                "mapping", notAnalyzedKeyword());
         final Map<String, Map<String, Object>> templateInternal = ImmutableMap.of("internal_fields", defaultInternal);
 
         final Map<String, Object> defaultAll = ImmutableMap.of(
@@ -75,26 +75,27 @@ public class IndexMapping {
      */
     private Map<String, Map<String, ? extends Serializable>> partFieldProperties(String analyzer) {
         return ImmutableMap.of(
-                "message", analyzedString(analyzer),
-                "full_message", analyzedString(analyzer),
+                "message", analyzedText(analyzer),
+                "full_message", analyzedText(analyzer),
                 // http://joda-time.sourceforge.net/api-release/org/joda/time/format/DateTimeFormat.html
                 // http://www.elasticsearch.org/guide/reference/mapping/date-format.html
                 "timestamp", typeTimeWithMillis(),
                 // to support wildcard searches in source we need to lowercase the content (wildcard search lowercases search term)
-                "source", analyzedString("analyzer_keyword"),
-                "streams", notAnalyzedString());
+                "source", analyzedText("analyzer_keyword"),
+                "streams", notAnalyzedKeyword());
     }
 
-    private Map<String, String> notAnalyzedString() {
+    private Map<String, String> notAnalyzedKeyword() {
         return ImmutableMap.of(
                 "index", "not_analyzed",
-                "type", "string");
+                "type", "keyword");
     }
 
-    private Map<String, String> analyzedString(String analyzer) {
+    private Map<String, Serializable> analyzedText(String analyzer) {
         return ImmutableMap.of(
                 "index", "analyzed",
-                "type", "string",
+                "type", "text",
+                "fielddata", true,
                 "analyzer", analyzer);
     }
 

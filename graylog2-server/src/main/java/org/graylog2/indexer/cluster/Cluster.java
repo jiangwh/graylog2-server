@@ -90,7 +90,7 @@ public class Cluster {
 
         final ImmutableMap.Builder<String, NodeInfo> builder = ImmutableMap.builder();
         for (NodeInfo nodeInfo : clusterAdminClient.nodesInfo(request).actionGet().getNodes()) {
-            builder.put(nodeInfo.getNode().id(), nodeInfo);
+            builder.put(nodeInfo.getNode().getId(), nodeInfo);
         }
 
         return builder.build();
@@ -101,7 +101,7 @@ public class Cluster {
         final NodesStatsRequest request = clusterAdminClient.prepareNodesStats(nodesIds).request();
         final ImmutableMap.Builder<String, NodeStats> builder = ImmutableMap.builder();
         for (NodeStats nodeStats : clusterAdminClient.nodesStats(request).actionGet().getNodes()) {
-            builder.put(nodeStats.getNode().id(), nodeStats);
+            builder.put(nodeStats.getNode().getId(), nodeStats);
         }
 
         return builder.build();

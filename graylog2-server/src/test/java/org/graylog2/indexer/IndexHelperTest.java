@@ -22,15 +22,14 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.graylog2.indexer.ranges.IndexRange;
 import org.graylog2.indexer.ranges.IndexRangeService;
 import org.graylog2.indexer.ranges.MongoIndexRange;
+import org.graylog2.plugin.Tools;
 import org.graylog2.plugin.indexer.searches.timeranges.AbsoluteRange;
 import org.graylog2.plugin.indexer.searches.timeranges.KeywordRange;
 import org.graylog2.plugin.indexer.searches.timeranges.RelativeRange;
 import org.graylog2.plugin.indexer.searches.timeranges.TimeRange;
-import org.graylog2.plugin.Tools;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
-import org.joda.time.Duration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -217,10 +216,10 @@ public class IndexHelperTest {
         final DateTime to = from.plusHours(1);
         final TimeRange timeRange = AbsoluteRange.create(from, to);
         final RangeQueryBuilder queryBuilder = (RangeQueryBuilder) IndexHelper.getTimestampRangeFilter(timeRange);
-        assertThat(queryBuilder)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("name", "timestamp")
-                .hasFieldOrPropertyWithValue("from", Tools.buildElasticSearchTimeFormat(from))
-                .hasFieldOrPropertyWithValue("to", Tools.buildElasticSearchTimeFormat(to));
+
+        assertThat(queryBuilder).isNotNull();
+        assertThat(queryBuilder.fieldName()).isEqualTo("timestamp");
+        assertThat(queryBuilder.from()).isEqualTo(Tools.buildElasticSearchTimeFormat(from));
+        assertThat(queryBuilder.to()).isEqualTo(Tools.buildElasticSearchTimeFormat(to));
     }
 }

@@ -20,10 +20,10 @@ import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.collect.Maps;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.cluster.ClusterChangedEvent;
-import org.elasticsearch.cluster.ClusterService;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.ClusterStateListener;
 import org.elasticsearch.cluster.node.DiscoveryNode;
+import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.settings.Settings;
 import org.graylog2.indexer.cluster.Cluster;
@@ -61,7 +61,7 @@ public class ClusterStateMonitor extends AbstractLifecycleComponent<ClusterState
             return;
         }
 
-        if (event.state().getNodes().masterAndDataNodes().isEmpty()) {
+        if (event.state().getNodes().getMasterAndDataNodes().isEmpty()) {
             log.warn("No Elasticsearch data nodes in cluster, cluster is completely offline.");
         }
         if (!event.nodesChanged()) {
@@ -70,7 +70,7 @@ public class ClusterStateMonitor extends AbstractLifecycleComponent<ClusterState
         }
         if (cluster != null) {
             final Map<String, DiscoveryNode> nodes = Maps.newHashMap();
-            for (ObjectObjectCursor<String, DiscoveryNode> cursor : event.state().getNodes().dataNodes()) {
+            for (ObjectObjectCursor<String, DiscoveryNode> cursor : event.state().getNodes().getDataNodes()) {
                 nodes.put(cursor.key, cursor.value);
             }
             cluster.updateDataNodeList(nodes);

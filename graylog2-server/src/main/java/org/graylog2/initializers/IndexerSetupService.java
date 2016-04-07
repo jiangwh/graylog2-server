@@ -234,7 +234,11 @@ public class IndexerSetupService extends AbstractIdleService {
 
             LOG.debug("Shutting down Elasticsearch node after buffer synchronizer has terminated.");
             if (!node.isClosed()) {
-                node.close();
+                try {
+                    node.close();
+                } catch (IOException e) {
+                    LOG.error("Couldn't properly shutdown Elasticsearch node", e);
+                }
             }
         }
     }

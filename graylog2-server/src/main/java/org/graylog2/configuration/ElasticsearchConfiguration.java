@@ -55,9 +55,6 @@ public class ElasticsearchConfiguration {
     @Parameter(value = "elasticsearch_http_enabled")
     private boolean httpEnabled = false;
 
-    @Parameter(value = "elasticsearch_discovery_zen_ping_multicast_enabled")
-    private boolean multicastDiscovery = true;
-
     @Parameter(value = "elasticsearch_discovery_zen_ping_unicast_hosts", converter = StringListConverter.class)
     private List<String> unicastHosts;
 
@@ -159,10 +156,6 @@ public class ElasticsearchConfiguration {
 
     public boolean isHttpEnabled() {
         return httpEnabled;
-    }
-
-    public boolean isMulticastDiscovery() {
-        return multicastDiscovery;
     }
 
     public List<String> getUnicastHosts() {

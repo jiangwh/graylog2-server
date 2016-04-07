@@ -20,7 +20,6 @@ import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.collect.UnmodifiableIterator;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.WriteConsistencyLevel;
@@ -68,11 +67,11 @@ import org.elasticsearch.indices.IndexClosedException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
-import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregatorBuilder;
 import org.elasticsearch.search.aggregations.metrics.max.Max;
 import org.elasticsearch.search.aggregations.metrics.min.Min;
+import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortParseElement;
 import org.graylog2.configuration.ElasticsearchConfiguration;
 import org.graylog2.indexer.IndexMapping;
 import org.graylog2.indexer.IndexNotFoundException;
@@ -88,6 +87,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -118,7 +118,7 @@ public class Indices {
         SearchResponse scrollResp = c.prepareSearch(source)
                 .setScroll(TimeValue.timeValueSeconds(10L))
                 .setQuery(matchAllQuery())
-                .addSort(SortBuilders.fieldSort(SortParseElement.DOC_FIELD_NAME))
+                .addSort(SortBuilders.fieldSort(FieldSortBuilder.DOC_FIELD_NAME))
                 .setSize(350)
                 .execute()
                 .actionGet();
@@ -374,16 +374,16 @@ public class Indices {
 
         ClusterState state = c.admin().cluster().state(csr).actionGet().getState();
 
-        UnmodifiableIterator<IndexMetaData> it = state.getMetaData().getIndices().valuesIt();
-
+        final Iterator<IndexMetaData> it = state.getMetaData().getIndices().valuesIt();
         while (it.hasNext()) {
-            IndexMetaData indexMeta = it.next();
             // Only search in our indices.
-            if (!indexMeta.getIndex().startsWith(configuration.getIndexPrefix())) {
+            final IndexMetaData indexMeta = it.next();
+            final String name = indexMeta.getIndex().getName();
+            if (!name.startsWith(configuration.getIndexPrefix())) {
                 continue;
             }
             if (indexMeta.getState().equals(IndexMetaData.State.CLOSE)) {
-                closedIndices.add(indexMeta.getIndex());
+                closedIndices.add(name);
             }
         }
         return closedIndices;
@@ -400,16 +400,16 @@ public class Indices {
 
         ClusterState state = c.admin().cluster().state(csr).actionGet().getState();
 
-        UnmodifiableIterator<IndexMetaData> it = state.getMetaData().getIndices().valuesIt();
-
+        final Iterator<IndexMetaData> it = state.getMetaData().getIndices().valuesIt();
         while (it.hasNext()) {
-            IndexMetaData indexMeta = it.next();
             // Only search in our indices.
-            if (!indexMeta.getIndex().startsWith(configuration.getIndexPrefix())) {
+            final IndexMetaData indexMeta = it.next();
+            final String name = indexMeta.getIndex().getName();
+            if (!name.startsWith(configuration.getIndexPrefix())) {
                 continue;
             }
             if (checkForReopened(indexMeta)) {
-                reopenedIndices.add(indexMeta.getIndex());
+                reopenedIndices.add(name);
             }
         }
         return reopenedIndices;
@@ -535,8 +535,7 @@ public class Indices {
      * @see org.elasticsearch.search.aggregations.metrics.stats.Stats
      */
     public TimestampStats timestampStatsOfIndex(String index) {
-        final FilterAggregationBuilder builder = AggregationBuilders.filter("agg")
-                .filter(QueryBuilders.existsQuery("timestamp"))
+        final FilterAggregatorBuilder builder = AggregationBuilders.filter("agg", QueryBuilders.existsQuery("timestamp"))
                 .subAggregation(AggregationBuilders.min("ts_min").field("timestamp"))
                 .subAggregation(AggregationBuilders.max("ts_max").field("timestamp"));
         final SearchRequestBuilder srb = c.prepareSearch()

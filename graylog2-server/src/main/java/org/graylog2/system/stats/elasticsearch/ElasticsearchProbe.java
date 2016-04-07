@@ -27,11 +27,13 @@ import org.elasticsearch.action.admin.cluster.tasks.PendingClusterTasksRequest;
 import org.elasticsearch.action.admin.cluster.tasks.PendingClusterTasksResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.ClusterAdminClient;
+import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.cluster.service.PendingClusterTask;
 import org.graylog2.indexer.indices.Indices;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
 
 @Singleton
 public class ElasticsearchProbe {
@@ -51,12 +53,16 @@ public class ElasticsearchProbe {
         final String clusterName = clusterStatsResponse.getClusterNameAsString();
 
         final ClusterStatsNodes clusterNodesStats = clusterStatsResponse.getNodesStats();
+        final ClusterStatsNodes.Counts counts = clusterNodesStats.getCounts();
+        final Map<String, Integer> roles = counts.getRoles();
         final NodesStats nodesStats = NodesStats.create(
-                clusterNodesStats.getCounts().getTotal(),
-                clusterNodesStats.getCounts().getMasterOnly(),
-                clusterNodesStats.getCounts().getDataOnly(),
-                clusterNodesStats.getCounts().getMasterData(),
-                clusterNodesStats.getCounts().getClient()
+                counts.getTotal(),
+                roles.getOrDefault(DiscoveryNode.Role.MASTER.getRoleName(), 0),
+                roles.getOrDefault(DiscoveryNode.Role.DATA.getRoleName(), 0),
+                // FIXME: How to get nodes being master and data nodes?
+                0,
+                // see ClusterStatsNodes.Counts#COORDINATING_ONLY
+                roles.getOrDefault("coordinating_only", 0)
         );
 
         final IndicesStats indicesStats = IndicesStats.create(
